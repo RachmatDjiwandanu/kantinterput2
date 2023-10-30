@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="css/styles.css" rel="stylesheet" />
+    <link href="../../../admin/dashboard/css/styles.css" rel="stylesheet" />
     <script src="alertsweet.js"></script>
     <script
         src="https://code.jquery.com/jquery-3.7.1.min.js"

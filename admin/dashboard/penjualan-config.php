@@ -10,12 +10,6 @@
             display: block;
         }
         </style>
-        <style>
-            /* Initially hide the text input and select dropdown */
-            #textInput, #selectOption {
-                display: none;
-            }
-        </style>
     <?php include 'header.php' ?>
     </head>
     <body class="sb-nav-fixed">
@@ -40,40 +34,32 @@
 
 
                                             if (isset($_POST['simpan'])) {
-
-                                                $harga = filter_input(INPUT_POST, 'harga');
-                                                $total_barang = filter_input(INPUT_POST, 'total_barang');
-                                                $stock = $total_barang;
-                                                $mode = filter_input(INPUT_POST, 'aktifasi');
+                                                // Retrieve data from the form
+                                                $id_jual = $_POST['id_jual'];
+                                                $harga = $_POST['harga'];
+                                                $aktifasi = $_POST['aktifasi'];
                                                 
-                                                if (!isset($aktifasi)) {
-                                                    $aktifasi = filter_input(INPUT_POST, 'aktifasi');
-
+                                                // Set other variables like tgl_update and user_update
+                                                $tgl_update = date("Y-m-d");
+                                                $user_update = $_SESSION['nama'];
+                                            
+                                                // Use a prepared statement to update the database
+                                                $sql = 'UPDATE jual SET harga = :harga, aktifasi = :aktifasi, tgl_update = :tgl_update, user_update = :user_update WHERE id_jual = :id_jual';
+                                                $stmt = $conn->prepare($sql);
+                                            
+                                                // Bind the parameters
+                                                $stmt->bindParam(':id_jual', $id_jual, PDO::PARAM_INT);
+                                                $stmt->bindParam(':harga', $harga, PDO::PARAM_INT);
+                                                $stmt->bindParam(':aktifasi', $aktifasi, PDO::PARAM_INT);
+                                                $stmt->bindParam(':tgl_update', $tgl_update);
+                                                $stmt->bindParam(':user_update', $user_update);
+                                            
+                                                // Execute the update
+                                                if ($stmt->execute()) {
+                                                    echo "<script>document.location.href='http://localhost/kantinterput2/admin/dashboard/penjualan.php';</script>";
                                                 } else {
-                                                    if ($stock < 1) {
-                                                        $aktifasi = 1;
-                                                    } else {
-                                                        $aktifasi = 0;
-                                                    }
+                                                    echo "Update failed.";
                                                 }
-                                                
-                                                echo "Aktifasi: " . $aktifasi;
-                                                // Gunakan prepared statement untuk mencegah SQL injection
-                                                    //no error
-                                                                //Securly insert into database
-                                                    $sql = 'UPDATE jual SET id_jual=:id_jual, harga=:harga, stock=:stock, total_barang=:total_barang, aktifasi=:aktifasi, mode=:mode WHERE id_jual=:id_jual';
-                                                    $stmt = $conn->prepare($sql);
-
-                                                    $stmt->bindParam(':id_jual', $id_jual);
-                                                    $stmt->bindParam(':harga', $harga);
-                                                    $stmt->bindParam(':stock', $stock);
-                                                    $stmt->bindParam(':total_barang', $total_barang);
-                                                    $stmt->bindParam(':aktifasi', $aktifasi);
-                                                    $stmt->bindParam(':mode', $mode);
-                                                        
-                                                    $stmt->execute();
-                                                    echo "<script>document.location.href='http://localhost/kantintp2/admin/dashboard/data-user.php';</script>";
-
                                             }
 
                                             // Gunakan prepared statement untuk mencegah SQL injection
@@ -95,7 +81,7 @@
                                                         <label class="mx-2" for="id_jual">Id Jual</label>
                                                     </div>
                                                     <div class="form-floating mb-3">
-                                                        <input disabled type="text" name="id_produk" class="form-control" id="id_produk" value="<?= $edit['id_produk'] ?>">
+                                                        <input disabled type="text" name="id_produk" class="form-control" id="id_produk" value="<?="(" . $edit['id_produk'] . ") " . $edit['nama_produk'] ?>">
                                                         <label class="mx-2" for="id_produk">Id Produk</label>
                                                     </div>
                                                     <div class="form-floating mb-3">
@@ -106,26 +92,12 @@
                                                         <input type="text" name="harga" class="form-control" id="harga" value="<?= $edit['harga'] ?>">
                                                         <label class="mx-2" for="harga">Harga</label>
                                                     </div>
-
                                                     <div>
-                                                        <select name="mode" class="form-select form-select mb-3" aria-label=".form-select-lg example" id="formType">
-                                                            <option selected disabled>-- Pilih Mode Jual Produk --</option>
-                                                            <option value="Auto" <?= ($edit['mode'] == 'Auto') ? 'selected' : '' ?>>Auto</option>
-                                                            <option value="Manual" <?= ($edit['mode'] == 'Manual') ? 'selected' : '' ?>>Manual</option>
+                                                        <select name="aktifasi" class="form-select form-select mb-3" aria-label=".form-select-lg example">
+                                                            <option selected value="">-- Pilih Aktifasi Produk --</option>
+                                                            <option value="1" <?= ($edit['aktifasi'] == '1') ? 'selected' : '' ?>>Aktif</option>
+                                                            <option value="0" <?= ($edit['aktifasi'] == '0') ? 'selected' : '' ?>>Tidak Aktif</option>
                                                         </select>
-                                                    </div>
-                                                    <div id="formField">
-                                                        <div class="form-floating mb-3" id="textInput1">
-                                                            <input type="text" name="total_barang" class="form-control" id="textInput" value="<?= $edit['stock'] ?>" >
-                                                            <label class="mx-2" for="textInput">Stock</label>
-                                                        </div>
-                                                        <div>
-                                                            <select name="aktifasi" class="form-select form-select mb-3" aria-label=".form-select-lg example" id="selectOption">
-                                                                <option selected value="">-- Pilih Aktifasi Produk --</option>
-                                                                <option value="0" <?= ($edit['aktifasi'] == '0') ? 'selected' : '' ?>>Aktif</option>
-                                                                <option value="1" <?= ($edit['aktifasi'] == '1') ? 'selected' : '' ?>>Tidak Aktif</option>
-                                                            </select>
-                                                        </div>
                                                     </div>
                                                     <div class="col-6">
                                                         <input class="btn btn-success btn-block w-100" type="submit" name="simpan" value="Simpan">
@@ -135,33 +107,6 @@
                                                     </div>   
                                                 </div>
                                             </form>
-                                            <script>
-                                                const formTypeSelect = document.getElementById('formType');
-                                                const textInput = document.getElementById('textInput');
-                                                const textInput1 = document.getElementById('textInput1');
-                                                const selectOption = document.getElementById('selectOption');
-
-                                                // Initially, hide both the text input and select dropdown
-                                                textInput.style.display = 'none';
-                                                textInput1.style.display = 'none';
-                                                selectOption.style.display = 'none';
-
-                                                formTypeSelect.addEventListener('change', function() {
-                                                    const selectedOption = formTypeSelect.value;
-
-                                                    if (selectedOption === 'Auto') {
-                                                        textInput.style.display = 'block';
-                                                        textInput1.style.display = 'block';
-                                                        selectOption.style.display = 'none';
-                                                        selectOption.selectedIndex = 0; // Set it to the first (default) option
-                                                    } else if (selectedOption === 'Manual') {
-                                                        textInput.style.display = 'none';
-                                                        textInput1.style.display = 'none';
-                                                        selectOption.style.display = 'block';
-                                                        textInput.value = '';
-                                                    }
-                                                });
-                                            </script>
                                         </div>
                             </div>
                         </div>

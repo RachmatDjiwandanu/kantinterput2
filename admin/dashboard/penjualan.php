@@ -36,9 +36,7 @@
                                             <th>Kategori</th>
                                             <th>Gambar</th>
                                             <th>Harga</th>
-                                            <th>Stock</th>
-                                            <th>Total Stock</th>
-                                            <th>Penjualan</th>
+                                            <th>Aktifasi</th>
                                             <th>Tanggal Update</th>
                                             <th>User Update</th>
                                             <th>Change</th>
@@ -51,8 +49,6 @@
                                             <th>Kategori</th>
                                             <th>Gambar</th>
                                             <th>Harga</th>
-                                            <th>Stock</th>
-                                            <th>Total Stock</th>
                                             <th>Aktifasi</th>
                                             <th>Tanggal Update</th>
                                             <th>User Update</th>
@@ -63,9 +59,10 @@
                                         <?php
                                             require_once("conn.php");
                                             $no = 1;
-                                            $query = "SELECT * FROM jual AS j 
+                                            $query = "SELECT j.*, u.nama_produk, u.kategori, t.gambarPath 
+                                            FROM jual AS j
                                             INNER JOIN produk AS u ON j.id_produk = u.id_produk
-                                            INNER JOIN gambar AS t ON j.id_gambar = t.id_gambar;";
+                                            INNER JOIN gambar AS t ON j.id_gambar = t.id_gambar";
 
                                             $stmt = $conn->query($query);
 
@@ -79,15 +76,13 @@
                                                 <img src="<?php echo str_replace($_SERVER['DOCUMENT_ROOT'], '', $row['gambarPath']); ?>" alt="Image Description" class="img-fluid custom-img ">
                                             </td>
                                             <td><?= $row['harga']; ?></td>
-                                            <td><?= $row['stock']; ?></td>
-                                            <td><?= $row['total_barang']; ?></td>
-                                            <td><?= $row['aktifasi']; ?></td>
-                                            <td><?= $row['tgl_update']; ?></td>
-                                            <td><?= $row['user_update']; ?></td>
+                                            <td><?= $row['aktifasi'] == 0 ? 'Tidak Aktif' : 'Aktif'; ?></td>
+                                            <td><?= $row['tgl_update'] ? $row['tgl_update'] : 'N/A'; ?></td>
+                                            <td><?= $row['user_update'] ? $row['user_update'] : 'N/A';  ?></td>
                                             <td>
                                                 <div class="d-grid gap-2" role="group" aria-label="First group">
                                                     <a type="button" class="btn btn-success btn-sm" href="penjualan-config.php?id_jual=<?= $row['id_jual']; ?>"><i class="fa-solid fa-gear" style="color: #ffffff;"></i></a>
-                                                    <a type="button" class="btn btn-info btn-sm" href="edit-user.php?id_user=<?= $row['id_user']; ?>"><i class="fa-solid fa-eye" style="color: #ffffff;"></i></a>
+                                                    <a type="button" class="btn btn-info btn-sm" href="edit-user.php?id_user=<?= $row['id_jual']; ?>"><i class="fa-solid fa-eye" style="color: #ffffff;"></i></a>
                                                     <a type="button" class="btn btn-danger btn-sm"><i class="fa-solid fa-eye-slash" style="color: #ffffff;"></i></a>
                                                 </div>
                                             </td>

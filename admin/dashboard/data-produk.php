@@ -83,8 +83,8 @@
                                             <td><?= $row['id_user']; ?></td>
                                             <td>
                                                 <div class="d-grid gap-2" role="group" aria-label="First group">
-                                                    <a class="btn btn-warning btn-sm" type="button" href="data-produk-update.php?id_user=<?= $row['id_produk']; ?>"><i class="fa-solid fa-pen-to-square"></i></a>
-                                                    <a class="btn btn-danger btn-sm" type="button" onclick="return confirm('Data akan di Hapus?')" href="hapus-user.php?id_user=<?= $row['id_user']; ?>"><i class="fa-solid fa-trash"></i></a>
+                                                    <a class="btn btn-warning btn-sm" type="button" href="data-produk-update.php?id_produk=<?= $row['id_produk']; ?>"><i class="fa-solid fa-pen-to-square"></i></a>
+                                                    <a class="btn btn-danger btn-sm" type="button" onclick="return confirm('Data akan di Hapus?')" href="data-produk-delete.php?id_produk=<?= $row['id_produk']; ?>"><i class="fa-solid fa-trash"></i></a>
                                                 </div>
                                             </td>
                                         </tr>

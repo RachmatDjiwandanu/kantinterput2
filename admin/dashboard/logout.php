@@ -8,4 +8,4 @@ session_destroy();
 setcookie('id', '', time() - 3600);
 setcookie('key', '', time() - 3600);
 
-header("Location: http://localhost/kantintp2/admin/login.php");
+header("Location: http://localhost/kantinterput2/admin/login.php");

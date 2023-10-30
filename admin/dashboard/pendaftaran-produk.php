@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="container-fluid px-4">
                 <h1 class="mt-4">Form Pendaftaran</h1>
                 <ol class="breadcrumb mb-4">
-                    <li class="breadcrumb-item"><a href="http://localhost/kantintp2/admin/dashboard/">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="http://localhost/kantinterput2/admin/dashboard/">Dashboard</a></li>
                     <li class="breadcrumb-item active">Pendaftaran</li>
                 </ol>
                 <div class="accordion" id="accordionPanelsStayOpenExample">
