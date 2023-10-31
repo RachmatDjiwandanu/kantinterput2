@@ -68,64 +68,52 @@
 
     <!-- Featured Section Begin -->
     <section class="featured spad">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="section-title">
-                        <h2>Featured Product</h2>
-                    </div>
-                    <div class="featured__controls">
-                        <ul>
-                            <li class="active" data-filter="*"><a href="index.php">All</a></li>
-                            <li data-filter=".Mie"><a href="index.php?kategori=Mie">Mie</a></li>
-                            <li data-filter=".Gorengan"><a href="index.php?kategori=Gorengan">Gorengan</a></li>
-                            <li data-filter=".Minuman"><a href="index.php?kategori=Minuman">Minuman</a></li>
-                            <li data-filter=".Snack"><a href="index.php?kategori=Snack">Snack</a></li>
-                        </ul>
-                    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="section-title">
+                    <h2>Featured Product</h2>
+                </div>
+                <div class="featured__controls">
+                    <ul>
+                        <li class="active" data-filter="*"><a href="index.php">All</a></li>
+                        <li data-filter=".Mie"><a href="index.php?kategori=Mie">Mie</a></li>
+                        <li data-filter=".Gorengan"><a href="index.php?kategori=Gorengan">Gorengan</a></li>
+                        <li data-filter=".Minuman"><a href="index.php?kategori=Minuman">Minuman</a></li>
+                        <li data-filter=".Snack"><a href="index.php?kategori=Snack">Snack</a></li>
+                    </ul>
                 </div>
             </div>
-            <div class="row featured__filter">
-                <?php
-                // Include the database connection file
-                require_once("admin/dashboard/conn.php");
-                $productsPerPage = 12; // Number of products to display per page
+        </div>
+        <div class="row featured__filter">
+            <?php
+            // Include the database connection file
+            require_once("admin/dashboard/conn.php");
+            $productsPerPage = 12; // Number of products to display per page
 
-                // Determine the selected kategori (default to "All")
-                $kategori = isset($_GET['kategori']) ? $_GET['kategori'] : 'All';
+            // Determine the selected category (default to "All")
+            $kategori = isset($_GET['kategori']) ? $_GET['kategori'] : 'All';
 
-                try {
-                    // Count the total number of products for the selected kategori
-                    $countSql = "SELECT COUNT(*) FROM jual AS j 
-                                INNER JOIN produk AS u ON j.id_produk = u.id_produk
-                                INNER JOIN gambar AS t ON j.id_gambar = t.id_gambar
-                                WHERE :kategori = 'All' OR u.kategori = :kategori";
+            try {
+                $currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+                $startIndex = ($currentPage - 1) * $productsPerPage;
 
-                    $countStmt = $conn->prepare($countSql);
-                    $countStmt->bindParam(':kategori', $kategori);
-                    $countStmt->execute();
-                    $totalProducts = $countStmt->fetchColumn();
+                // Update your SQL query to filter by category
+                $sql = "SELECT * FROM jual AS j 
+                        INNER JOIN produk AS u ON j.id_produk = u.id_produk
+                        INNER JOIN gambar AS t ON j.id_gambar = t.id_gambar
+                        WHERE :kategori = 'All' OR u.kategori = :kategori
+                        LIMIT :productsPerPage OFFSET :startIndex";
 
-                    $currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-                    $startIndex = ($currentPage - 1) * $productsPerPage;
+                $stmt = $conn->prepare($sql);
+                $stmt->bindParam(':kategori', $kategori);
+                $stmt->bindParam(':productsPerPage', $productsPerPage, PDO::PARAM_INT);
+                $stmt->bindParam(':startIndex', $startIndex, PDO::PARAM_INT);
+                $stmt->execute();
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                    // Update your SQL query to filter by kategori
-                    $sql = "SELECT * FROM jual AS j 
-                            INNER JOIN produk AS u ON j.id_produk = u.id_produk
-                            INNER JOIN gambar AS t ON j.id_gambar = t.id_gambar
-                            WHERE :kategori = 'All' OR u.kategori = :kategori
-                            ORDER BY u.nama_produk ASC
-                            LIMIT :productsPerPage OFFSET :startIndex";
-
-                    $stmt = $conn->prepare($sql);
-                    $stmt->bindParam(':kategori', $kategori);
-                    $stmt->bindParam(':productsPerPage', $productsPerPage, PDO::PARAM_INT);
-                    $stmt->bindParam(':startIndex', $startIndex, PDO::PARAM_INT);
-                    $stmt->execute();
-                    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                    if (count($result) > 0) {
-                        foreach ($result as $row) {
+                if (count($result) > 0) {
+                    foreach ($result as $row) {
                             echo '<div class="col-lg-3 col-md-4 col-sm-6 mix ' . $row['kategori'] . '">';
                             echo '<div class="featured__item">';
                             echo '<div class="featured__item__pic set-bg d-flex justify-content-center">';
@@ -149,33 +137,30 @@
                             echo '</div>';
                             echo '</div>';
                             // You can include "Add to Cart" buttons here for each product
-                        }
-
-                        // Implement separate pagination for each kategori
-                        echo '<ul class="pagination">';
-                        for ($page = 1; $page <= ceil($totalProducts / $productsPerPage); $page++) {
-                            if ($page === 1) {
-                                // Update pagination links with the selected kategori
-                                echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '">' . $page . '</a></li>';
-                            } else {
-                                echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=' . $page . '">' . $page . '</a></li>';
                             }
+                            echo '<ul class="pagination">';
+                            for ($page = 1; $page <= ceil(count($result) / $productsPerPage); $page++) {
+                                if ($page === 1) {
+                                    // Update pagination links with the selected category
+                                    echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '">' . $page . '</a></li>';
+                                } else {
+                                    echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=' . $page . '">' . $page . '</a></li>';
+                                }
+                            }
+                            echo '</ul>';
+                        } else {
+                            echo "No products found.";
                         }
-                        echo '</ul>';
-                    } else {
-                        echo "No products found.";
+        
+                        // Close the database connection
+                        $conn = null;
+                    } catch (PDOException $e) {
+                        echo "Error: " . $e->getMessage();
                     }
-
-                    // Close the database connection
-                    $conn = null;
-                } catch (PDOException $e) {
-                    echo "Error: " . $e->getMessage();
-                }
-                ?>
+                    ?>
+                </div>
             </div>
-        </div>
-    </section>
-
+        </section>
     <!-- Featured Section End -->
 
     <!-- Banner Begin -->

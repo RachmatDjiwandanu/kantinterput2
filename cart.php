@@ -78,6 +78,8 @@ session_start();
                         <a href="#" class="primary-btn cart-btn">CONTINUE SHOPPING</a>
                         <a href="#" class="primary-btn cart-btn cart-btn-right"><span class="icon_loading"></span>
                             Upadate Cart</a>
+                        <br>
+                        <a href="cart_clear.php" class="primary-btn cart-btn cart-btn-right my-2">CLEAR CART</a>
                     </div>
                 </div>
                 <div class="col-lg-6">
@@ -86,7 +88,7 @@ session_start();
                             <h5>Discount Codes</h5>
                             <form action="#">
                                 <input type="text" placeholder="Enter your coupon code">
-                                <button type="submit" class="site-btn">APPLY COUPON</button>
+                                <button type="submit" class="site-btn">CLEAR CART</button>
                             </form>
                         </div>
                     </div>
