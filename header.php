@@ -14,7 +14,7 @@
       <div class="offcanvas-body">
         <ul class="navbar-nav justify-content-center fs-5 flex-grow-1 pe-3">
           <li class="nav-item mx-2">
-            <a class="nav-link active " aria-current="page" href="index.php">Home</a>
+            <a class="nav-link active " aria-current="page" href="http://localhost/kantinterput2/">Home</a>
           </li>
           <li class="nav-item mx-2">
             <a class="nav-link active " aria-current="page" href="cart.php">Keranjang</a>

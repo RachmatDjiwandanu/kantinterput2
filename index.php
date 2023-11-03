@@ -1,6 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+    // Function to store scroll position
+    function storeScrollPosition() {
+        sessionStorage.setItem('scrollPosition', window.scrollY);
+    }
+
+    // Store the scroll position when the page unloads (e.g., when refreshing)
+    window.addEventListener('beforeunload', function (event) {
+        const performance = window.performance || window.mozPerformance || window.msPerformance || window.webkitPerformance || {};
+        const navigation = performance.navigation || {};
+
+        // Check if the page is being manually refreshed
+        if (navigation.type === 1) {
+            storeScrollPosition();
+        }
+    });
+
+    // Check if the current URL matches the expected pattern and scroll to the saved position
+    document.addEventListener('DOMContentLoaded', function () {
+        const currentPageUrl = window.location.pathname;
+        const scrollPosition = sessionStorage.getItem('scrollPosition');
+
+        // Define the pattern for matching URLs
+        const expectedPattern = /^\/produk\/\d+\/\w+/; // Modify this pattern as needed
+
+        if (expectedPattern.test(currentPageUrl) && scrollPosition) {
+            // The current URL matches the expected pattern
+            // Scroll to the saved position
+            window.scrollTo(0, scrollPosition);
+        }
+    });
+    </script>
     <meta charset="UTF-8">
     <meta name="description" content="Ogani Template">
     <meta name="keywords" content="Ogani, unica, creative, html">
@@ -17,6 +49,49 @@
     <link rel="stylesheet" href="css/owl.carousel.min.css" type="text/css">
     <link rel="stylesheet" href="css/slicknav.min.css" type="text/css">
     <link rel="stylesheet" href="css/style.css" type="text/css">
+    <style>
+        /* Popup container - can be anything you want */
+        .popup {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #555;
+        color: #fff;
+        border-radius: 6px;
+        padding: 8px 15px;
+        display: none;
+        opacity: 0; /* Start with opacity set to 0 */
+        transition: opacity 0.5s; /* Add transition for the fade effect */
+        }
+
+        /* Styles for the pop-up message */
+        .popup .popuptext {
+        text-align: center;
+        }
+
+        img {
+        z-index: 1; /* Lower z-index value for the image */
+        /* Other image styles */
+        }
+
+        #cartPopup {
+        position: fixed;
+        z-index: 999; /* Higher z-index value for the pop-up */
+        /* Rest of your styles */
+        }
+    </style>
+    <script>
+        function formatPrice(price) {
+        // Convert the price to a string and split it into integer and decimal parts
+        var parts = price.toFixed(2).toString().split(".");
+        
+        // Add commas to the integer part
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        
+        // Join the integer and decimal parts and return the formatted price
+        return parts.join(".");
+        }
+    </script>
 </head>
 
 <body>
@@ -73,14 +148,30 @@
                 <div class="col-lg-12">
                     <div class="section-title">
                         <h2>Featured Product</h2>
+                        <div id="cartPopup" class="popup">
+                            <span class="popuptext" id="popupMessage">Added to Cart</span>
+                        </div>
                     </div>
                     <div class="featured__controls">
                         <ul>
-                            <li class="active" data-filter="*"><a href="index.php">All</a></li>
-                            <li data-filter=".Mie"><a href="index.php?kategori=Mie">Mie</a></li>
-                            <li data-filter=".Gorengan"><a href="index.php?kategori=Gorengan">Gorengan</a></li>
-                            <li data-filter=".Minuman"><a href="index.php?kategori=Minuman">Minuman</a></li>
-                            <li data-filter=".Snack"><a href="index.php?kategori=Snack">Snack</a></li>
+                            <?php
+                            // Define the category names and the corresponding URLs
+                            $categories = [
+                                'All' => 'index.php',
+                                'Mie' => 'index.php?kategori=Mie',
+                                'Gorengan' => 'index.php?kategori=Gorengan',
+                                'Minuman' => 'index.php?kategori=Minuman',
+                                'Snack' => 'index.php?kategori=Snack',
+                            ];
+
+                            $kategori = isset($_GET['kategori']) ? $_GET['kategori'] : 'All'; // Define $kategori with a default value
+
+                            // Loop through the categories and create the category links
+                            foreach ($categories as $categoryName => $categoryURL) {
+                                $isActive = ($kategori === $categoryName || ($kategori === 'All' && $categoryName === 'All')) ? 'class="active"' : ''; // Check if the category is active
+                                echo '<li ' . $isActive . ' data-filter="*' . ($categoryName === 'All' ? '' : '.' . $categoryName) . '"><a href="' . $categoryURL . '">' . $categoryName . '</a></li>';
+                            }
+                            ?>
                         </ul>
                     </div>
                 </div>
@@ -91,9 +182,7 @@
                 require_once("admin/dashboard/conn.php");
                 $productsPerPage = 12; // Number of products to display per page
 
-                // Determine the selected kategori (default to "All")
-                $kategori = isset($_GET['kategori']) ? $_GET['kategori'] : 'All';
-
+                // Determine the selected kategori (default to "All"
                 try {
                     // Count the total number of products for the selected kategori
                     $countSql = "SELECT COUNT(*) FROM jual AS j 
@@ -124,17 +213,27 @@
                     $stmt->execute();
                     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+                    function formatPrice($price) {
+                        return 'Rp ' . number_format($price, 2, '.', ',');
+                    }
+
                     if (count($result) > 0) {
                         foreach ($result as $row) {
+                            $jualId = $row['id_jual'];
+                            $productName = $row['nama_produk'];
+                            $productName = str_replace(['(', ')'], '', $productName);
+                            $productName = str_replace(' ', '-', $productName); // Replace spaces with hyphens
+                            $productLink = 'produk/' . $jualId . '/' . $productName;
+                            $formattedPrice = formatPrice($row['harga']);
                             echo '<div class="col-lg-3 col-md-4 col-sm-6 mix ' . $row['kategori'] . '">';
                             echo '<div class="featured__item">';
                             echo '<div class="featured__item__pic set-bg d-flex justify-content-center">';
-                            echo '<a href=""><img src="' . str_replace($_SERVER["DOCUMENT_ROOT"], "", $row["gambarPath"]) . '" alt="" style="max-width: 270px;
+                            echo '<a href="' . $productLink . '"><img src="' . str_replace($_SERVER["DOCUMENT_ROOT"], "", $row["gambarPath"]) . '" alt="" style="max-width: 270px;
                             max-height: 270px;"></a>';
                             echo '<ul class="featured__item__pic__hover">';
                             echo '<li><a href="#"><i class="fa fa-heart"></i></a></li>';
                             echo '<li><a href="#"><i class="fa fa-retweet"></i></a></li>';
-                            echo '<li><a class="add-to-cart" 
+                            echo '<li><a class="add-to-cart" onclick="popupwin()"
                                 data-id="' . $row['id_produk'] . '" 
                                 data-name="' . $row['nama_produk'] . '" 
                                 data-price="' . $row['harga'] . '"
@@ -143,8 +242,8 @@
                             echo '</ul>';
                             echo '</div>';
                             echo '<div class="featured__item__text">';
-                            echo '<h6><a href="">' . $row["nama_produk"] . '</a></h6>';
-                            echo '<h5>Rp ' . $row["harga"] . '</h5>';
+                            echo '<h6><a href="' . $productLink . '">' . $row['nama_produk'] . '</a></h6>';
+                            echo '<h5>' . $formattedPrice . '</h5>';
                             echo '</div>';
                             echo '</div>';
                             echo '</div>';
@@ -152,16 +251,56 @@
                         }
 
                         // Implement separate pagination for each kategori
+                        echo '<div class="container text-center d-flex justify-content-center">';
                         echo '<ul class="pagination">';
-                        for ($page = 1; $page <= ceil($totalProducts / $productsPerPage); $page++) {
-                            if ($page === 1) {
-                                // Update pagination links with the selected kategori
-                                echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '">' . $page . '</a></li>';
-                            } else {
-                                echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=' . $page . '">' . $page . '</a></li>';
+
+                        $totalPages = ceil($totalProducts / $productsPerPage);
+                        $currentPage = isset($_GET['page']) ? intval($_GET['page']) : 1;
+                        
+                        // Display "Previous" button if not on the first page
+                        if ($currentPage > 1) {
+                            echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=' . ($currentPage - 1) . '">Previous</a></li>';
+                        }
+                        
+                        // Show the first page
+                        echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=1">1</a></li>';
+                        
+                        $maxPagesToDisplay = 5; // Maximum pages to display at a time
+                        
+                        if ($totalPages > $maxPagesToDisplay) {
+                            // Calculate the range of pages to display
+                            $start = max(2, min($currentPage - 2, $totalPages - $maxPagesToDisplay + 1));
+                            $end = min($start + $maxPagesToDisplay - 3, $totalPages - 1);
+                        
+                            // Display an ellipsis if needed
+                            if ($start > 2) {
+                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                            }
+                        
+                            for ($page = $start; $page <= $end; $page++) {
+                                echo '<li class="page-item' . ($page === $currentPage ? ' active' : '') . '"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=' . $page . '">' . $page . '</a></li>';
+                            }
+                        
+                            if ($end < $totalPages - 1) {
+                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                            }
+                        } else {
+                            for ($page = 2; $page < $totalPages; $page++) {
+                                echo '<li class="page-item' . ($page === $currentPage ? ' active' : '') . '"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=' . $page . '">' . $page . '</a></li>';
                             }
                         }
+                        
+                        // Show the last page
+                        echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=' . $totalPages . '">' . $totalPages . '</a></li>';
+                        
+                        // Display "Next" button if not on the last page
+                        if ($currentPage < $totalPages) {
+                            echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=' . ($currentPage + 1) . '">Next</a></li>';
+                        }
+                        
                         echo '</ul>';
+                        echo '</div">';
+                        
                     } else {
                         echo "No products found.";
                     }
@@ -539,7 +678,28 @@
     <script src="js/mixitup.min.js"></script>
     <script src="js/owl.carousel.min.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        function popupwin() {
+        // Show the pop-up
+        var popup = document.getElementById("cartPopup");
+        var popupMessage = document.getElementById("popupMessage");
 
+        popup.style.display = "block"; // Show the popup
+        // Force a reflow to enable the CSS transition to work
+        void popup.offsetWidth;
+
+        popup.style.opacity = 1; // Set opacity to 1 for the fade-in effect
+        popupMessage.textContent = "Added to Cart";
+
+        // Automatically close the pop-up after 3 seconds (adjust the time as needed)
+        setTimeout(function() {
+            popup.style.opacity = 0; // Set opacity to 0 for the fade-out effect
+            setTimeout(function() {
+            popup.style.display = "none"; // Hide the pop-up
+            }, 500); // 500 milliseconds for the fade-out transition
+        }, 3000); // 3000 milliseconds (3 seconds) for the pop-up to stay visible
+        }
+    </script>
 
 
 </body>

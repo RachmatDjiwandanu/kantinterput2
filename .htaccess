@@ -1,0 +1,5 @@
+RewriteEngine On
+RewriteBase /kantinterput2/
+
+# Rewrite URLs with product ID and name
+RewriteRule ^produk/(\d+)/([\w-]+)$ produk.php?id_jual=$1 [L]
