@@ -1,9 +1,21 @@
 <?php
 require_once("conn.php");
+
 $id_produk = $_GET["id_produk"]; // Get the id_produk you want to delete
 
 try {
     $conn->beginTransaction(); // Start a database transaction
+
+    // Retrieve the image filename
+    $query_img = "SELECT g.GambarNama 
+                 FROM produk p
+                 INNER JOIN gambar g ON p.id_gambar = g.id_gambar
+                 WHERE p.id_produk = :id_produk";
+                 
+    $stmt_img = $conn->prepare($query_img);
+    $stmt_img->bindParam(':id_produk', $id_produk, PDO::PARAM_INT);
+    $stmt_img->execute();
+    $image_filename = $stmt_img->fetchColumn();
 
     // Delete from the table with the foreign key reference
     $query1 = "DELETE FROM jual WHERE id_produk = :id_produk";
@@ -17,6 +29,13 @@ try {
     $stmt2->bindParam(':id_produk', $id_produk, PDO::PARAM_INT);
     $stmt2->execute();
 
+    // Delete the associated image file
+    $image_directory = 'C:/xampp/htdocs/image/'; // Update this path
+    $image_path = $image_directory . $image_filename;
+    
+    if (file_exists($image_path)) {
+        unlink($image_path);
+    }
     $conn->commit(); // Commit the transaction
 
     // Check if both deletes were successful
