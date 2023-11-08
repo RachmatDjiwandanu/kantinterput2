@@ -1,7 +1,7 @@
-
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
+// Suppress PHP errors and save the current error reporting level
+$previousErrorReporting = error_reporting(0);
+
 // Include your database connection code here
 require_once("admin/dashboard/conn.php");
 
@@ -9,6 +9,7 @@ require_once("admin/dashboard/conn.php");
 $nama_produk = "Product Not Found";
 $harga = "N/A";
 $topping = "None"; // Default topping
+$availabilityMessage = "";
 
 // Get the product ID from the URL
 if (isset($_GET['id_jual'])) {
@@ -34,14 +35,15 @@ if (isset($_GET['id_jual'])) {
         $harga = $product_data['harga'];
         $gambarPath = $product_data['gambarPath'];
         $kategori = $product_data['kategori'];
-    } else {
-        // Handle the case where the product ID was not found
-        echo "Product not found.";
+        
+        if ($product_data['aktifasi'] == 1) {
+            $availabilityMessage = "Available";
+        }
     }
 }
 
-// Close the database connection (if needed, depending on your connection method)
-// $conn = null;
+// Restore the previous error reporting level
+error_reporting($previousErrorReporting);
 ?>
 
 <!DOCTYPE html>
@@ -69,29 +71,13 @@ if (isset($_GET['id_jual'])) {
 <?php include 'header.php';?>
     <!-- Product Details Section Begin -->
     <section class="product-details spad">
-        <div class="container">
+    <div class="container">
+        <?php if ($availabilityMessage === "Available"): ?>
             <div class="row">
                 <div class="col-lg-6 col-md-6">
                     <div class="product__details__pic">
                         <div class="product__details__pic__item">
                             <?php echo '<img class="product__details__pic__item--large" src="' . str_replace($_SERVER["DOCUMENT_ROOT"], "", $gambarPath) . '" alt="" />' ?>
-                        </div>
-                        <div class="product__details__pic__slider owl-carousel">
-                            <a href="mie-soto.php">
-                                <img data-imgbigurl="/img/product/indomie/mie-soto-s.jpg" src="/img/product/indomie/mie-soto-s.jpg" alt="">
-                            </a>
-
-                            <a href="mie-goreng.php">
-                                <img data-imgbigurl="/img/product/indomie/mie-goreng.jpg" src="/img/product/indomie/mie-goreng.jpg" alt="">
-                            </a>
-
-                            <a href="mie-kari.php">
-                                <img data-imgbigurl="/img/product/indomie/mie-kari.jpg" src="/img/product/indomie/mie-kari.jpg" alt="">
-                            </a>
-
-                            <a href="mie-ayam">
-                                <img data-imgbigurl="/img/product/indomie/mie-ayam.jpg" src="/img/product/indomie/mie-ayam.jpg" alt="">
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -116,7 +102,7 @@ if (isset($_GET['id_jual'])) {
                                 </select>
                             <?php endif; ?>
                             <ul>
-                                <li><b>Availability</b> <span><?php echo $product_data['aktifasi'] == 1 ? 'Available' : 'Not Available'; ?></span></li>
+                                <li><b>Availability</b> <span><?php echo $availabilityMessage; ?></span></li>
                                 <?php if ($kategori == 'Mie'): ?>
                                 <li><b>Topping</b> <span id="selectedTopping">None</span></li>
                                 <?php endif; ?>
@@ -125,8 +111,11 @@ if (isset($_GET['id_jual'])) {
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        <?php else: ?>
+            <h3>Product Not Available</h3>
+        <?php endif; ?>
+    </div>
+</section>
     <!-- Product Details Section End -->
     <!-- Related Product Section Begin -->
     <!-- Related Product Section End -->
