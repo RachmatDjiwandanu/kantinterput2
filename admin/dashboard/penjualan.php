@@ -58,30 +58,6 @@
                                     <tbody>
                                         <?php
                                             require_once("conn.php");
-                                            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                                                // Handle the POST request to update "aktifasi"
-                                                if (isset($_POST['id_jual'])) {
-                                                    $productId = $_POST['id_jual'];
-                                                    $response = array();
-                                            
-                                                    // Update the aktifasi value for the specified product
-                                                    $query = "UPDATE jual SET aktifasi = IF(aktifasi = 1, 0, 1) WHERE id_jual = :id_jual";
-                                                    $stmt = $conn->prepare($query);
-                                                    $stmt->bindParam(':id_jual', $productId, PDO::PARAM_INT);
-                                            
-                                                    if ($stmt->execute()) {
-                                                        $response['success'] = true;
-                                                        $response['aktifasi'] = $stmt->fetch(PDO::FETCH_COLUMN);
-                                                    } else {
-                                                        $response['success'] = false;
-                                                    }
-                                            
-                                                    // Send a JSON response
-                                                    header('Content-Type: application/json');
-                                                    echo json_encode($response);
-                                                    exit;
-                                                }
-                                            }
                                             
                                             $no = 1;
                                             $query = "SELECT j.*, u.nama_produk, u.kategori, t.gambarPath 
@@ -107,7 +83,9 @@
                                             <td><?= $row['user_update'] ? $row['user_update'] : 'N/A';  ?></td>
                                             <td>
                                                 <div class="d-grid gap-2" role="group" aria-label="First group">
-                                                    <a type="button" class="btn btn-success btn-sm" href="penjualan-config.php?id_jual=<?= $row['id_jual']; ?>"><i class="fa-solid fa-gear" style="color: #ffffff;"></i></a>
+                                                    <a type="button" class="btn btn-update btn-sm btn-success" onclick="openUpdateModal(<?= $row['id_jual']; ?>);">
+                                                        <i class="fa-solid fa-pencil" style="color: #ffffff;"></i>
+                                                    </a>
                                                     <a type="button" class="btn toggle-aktifasi btn-sm <?= $row['aktifasi'] == 1 ? 'btn-success' : 'btn-danger'; ?>" onclick="toggleAktifasi(<?= $row['id_jual']; ?>, this); refreshPage();">
                                                         <i id="aktifasi-icon" class="fa-solid <?= $row['aktifasi'] == 1 ? 'fa-eye' : 'fa-eye-slash'; ?>" style="color: #ffffff;"></i>
                                                     </a>
@@ -118,6 +96,39 @@
                                         }
                                     ?>
                                     </tbody>
+                                    
+                                    <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="updateModalLabel">Update Product</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <!-- Your update form content goes here -->
+                                                    <form id="updateForm">
+                                                        <input type="hidden" id="id_jual" name="id">
+                                                        <div class="form-group row">
+                                                            <label for="nama_produk" class="col-md-12 col-form-label col-form-label-sm">Nama Produk</label>
+                                                            <div class="col-md-12 ">
+                                                                <input type="text" id="nama_produk" name="nama_produk" class="form-control form-control-md" readonly disabled >
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group row">
+                                                            <label for="harga" class="col-md-12 col-form-label col-form-label-sm">Harga</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="harga" name="harga" class="form-control form-control-md">
+                                                            </div>
+                                                        </div>
+                                                        <br>
+                                                        <!-- Add other form fields as needed -->
+                                                        <button type="submit" class="btn btn-primary">Update</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </table>
                             </div>
                         </div>
@@ -134,6 +145,7 @@
         <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
         <script src="js/datatables-simple-demo.js"></script>
         <script>
+
             function toggleAktifasi(productId, button) {
                 // Send an AJAX request to update the "aktifasi" value
                 const xhr = new XMLHttpRequest();
@@ -159,6 +171,88 @@
             }
             function refreshPage() {
                 window.location.reload();
+            }
+        </script>
+
+
+        <script>
+            function openUpdateModal(id_jual) {
+                console.log('Opening modal for id_jual:', id_jual);
+
+                // Fetch current data from the server
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'fetch-data.php?id_jual=' + id_jual, true);
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        console.log('Data fetched successfully:', xhr.responseText);
+                        var data = JSON.parse(xhr.responseText);
+
+                        // Log the data to check if it's correct
+                        console.log('Fetched data:', data);
+
+                        // Set values in the modal form
+                        document.getElementById('id_jual').value = data.id_jual;
+                        document.getElementById('harga').value = data.harga;
+                        document.getElementById('nama_produk').value = data.nama_produk; // Update with the actual field name
+                        // Set other form fields as needed
+
+                        // Show the modal
+                        var updateModal = new bootstrap.Modal(document.getElementById('updateModal'));
+                        updateModal.show();
+
+                        // Add a submit event listener to the form
+                        document.getElementById('updateForm').addEventListener('submit', function (e) {
+                            e.preventDefault();
+                            updateData();
+                        });
+                    } else {
+                        console.error('Failed to fetch data. Status:', xhr.status);
+                    }
+                };
+
+                // Log an error if the request fails
+                xhr.onerror = function () {
+                    console.error('An error occurred while fetching data.');
+                };
+
+                // Send the request to fetch data
+                xhr.send();
+            }
+
+            function updateData() {
+                // Get form data
+                var id_jual = document.getElementById('id_jual').value;
+                var harga = document.getElementById('harga').value; // Update with the actual field name
+                // Get other form fields as needed
+
+                // Create FormData object to send data
+                var formData = new FormData();
+                formData.append('id_jual', id_jual);
+                formData.append('harga', harga);
+                // Append other form fields as needed
+
+                // Send an AJAX request to update the data
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'update-penjualan.php', true);
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.success) {
+                            console.log('Data updated successfully:', response);
+                            // Optionally, you can close the modal or update the table based on your requirement
+                            var updateModal = new bootstrap.Modal(document.getElementById('updateModal'));
+                            updateModal.hide();
+                            window.location.reload(); // Reload the page or update the table
+                        } else {
+                            console.error('Failed to update data. Response:', response);
+                        }
+                    } else {
+                        console.error('Failed to update data. Status:', xhr.status);
+                    }
+                };
+
+                // Send the FormData
+                xhr.send(formData);
             }
         </script>
     </body>
