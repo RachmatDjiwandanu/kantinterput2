@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+'<!DOCTYPE html>
 <html lang="en">
 <head>
     <script>
@@ -49,36 +49,41 @@
     <link rel="stylesheet" href="css/owl.carousel.min.css" type="text/css">
     <link rel="stylesheet" href="css/slicknav.min.css" type="text/css">
     <link rel="stylesheet" href="css/style.css" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* Popup container - can be anything you want */
-        .popup {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background-color: #555;
-        color: #fff;
-        border-radius: 6px;
-        padding: 8px 15px;
-        display: none;
-        opacity: 0; /* Start with opacity set to 0 */
-        transition: opacity 0.5s; /* Add transition for the fade effect */
-        }
+        .feedback {
+        background-color : #cad531;
+        color: white;
+        padding: 10px 20px;
+        border-color: #FFFF00;
+        height: 80px;
+        line-height: 80px;  
+        width: 80px;  
+        font-size: 2em;
+        font-weight: bold;
+        border-radius: 50%;
+        text-align: center;
+        cursor: pointer;
+    
+  }
 
         /* Styles for the pop-up message */
-        .popup .popuptext {
-        text-align: center;
-        }
+        
 
         img {
         z-index: 1; /* Lower z-index value for the image */
         /* Other image styles */
         }
 
-        #cartPopup {
+        #mybutton {
+        z-index: 999;
         position: fixed;
-        z-index: 999; /* Higher z-index value for the pop-up */
-        /* Rest of your styles */
-        }
+        bottom: -4px;
+        right: 10px;
+        margin-bottom: 50px;
+        margin-right: 10px;
+  }
     </style>
     <script>
         function formatPrice(price) {
@@ -148,8 +153,8 @@
                 <div class="col-lg-12">
                     <div class="section-title">
                         <h2>Featured Product</h2>
-                        <div id="cartPopup" class="popup">
-                            <span class="popuptext" id="popupMessage">Added to Cart</span>
+                        <div id="mybutton">
+                         <a href="cart.php" class="feedback"><i class="fa-solid fa-cart-shopping" style="color: #000000;"></i></a>
                         </div>
                     </div>
                     <div class="featured__controls">
@@ -238,7 +243,7 @@
                                 data-name="' . $row['nama_produk'] . '" 
                                 data-price="' . $row['harga'] . '"
                                 data-image="' . $row['gambarPath'] . '">
-                                <i class="fa fa-shopping-cart" style="pointer-events: none;"></i></a></li>';
+                                <i class="fa fa-solid fa-plus" style="pointer-events: none;"></i></a></li>';
                             echo '</ul>';
                             echo '</div>';
                             echo '<div class="featured__item__text">';
