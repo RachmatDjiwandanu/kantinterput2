@@ -79,6 +79,11 @@
         z-index: 999; /* Higher z-index value for the pop-up */
         /* Rest of your styles */
         }
+        .pagination .page-item.active .page-link {
+            background-color: transparent; /* Change this to your desired background color */
+            border-color: #007bff; /* Change this to your desired border color */
+            color: #0d6efd; /* Change this to your desired text color */
+        }
     </style>
     <script>
         function formatPrice(price) {
@@ -253,45 +258,40 @@
                         // Implement separate pagination for each kategori
                         echo '<div class="container text-center d-flex justify-content-center">';
                         echo '<ul class="pagination">';
-
+                        
                         $totalPages = ceil($totalProducts / $productsPerPage);
                         $currentPage = isset($_GET['page']) ? intval($_GET['page']) : 1;
+                        
+                        $maxPagesToDisplay = 5; // Adjust the number of pages to display as needed
                         
                         // Display "Previous" button if not on the first page
                         if ($currentPage > 1) {
                             echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=' . ($currentPage - 1) . '">Previous</a></li>';
                         }
                         
-                        // Show the first page
-                        echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=1">1</a></li>';
-                        
-                        $maxPagesToDisplay = 5; // Maximum pages to display at a time
-                        
-                        if ($totalPages > $maxPagesToDisplay) {
-                            // Calculate the range of pages to display
-                            $start = max(2, min($currentPage - 2, $totalPages - $maxPagesToDisplay + 1));
-                            $end = min($start + $maxPagesToDisplay - 3, $totalPages - 1);
-                        
-                            // Display an ellipsis if needed
-                            if ($start > 2) {
+                        // Display link to jump to the first page
+                        if ($currentPage > ceil($maxPagesToDisplay / 2)) {
+                            echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=1">1</a></li>';
+                            if ($currentPage > ceil($maxPagesToDisplay / 2) + 1) {
                                 echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
-                            }
-                        
-                            for ($page = $start; $page <= $end; $page++) {
-                                echo '<li class="page-item' . ($page === $currentPage ? ' active' : '') . '"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=' . $page . '">' . $page . '</a></li>';
-                            }
-                        
-                            if ($end < $totalPages - 1) {
-                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
-                            }
-                        } else {
-                            for ($page = 2; $page < $totalPages; $page++) {
-                                echo '<li class="page-item' . ($page === $currentPage ? ' active' : '') . '"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=' . $page . '">' . $page . '</a></li>';
                             }
                         }
                         
-                        // Show the last page
-                        echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=' . $totalPages . '">' . $totalPages . '</a></li>';
+                        // Display the page numbers
+                        for ($page = 1; $page <= $totalPages; $page++) {
+                            $class = ($page === $currentPage) ? ' active' : '';
+                            if ($page >= max(1, $currentPage - floor($maxPagesToDisplay / 2)) && $page <= min($currentPage + floor($maxPagesToDisplay / 2), $totalPages)) {
+                                echo '<li class="page-item' . $class . '"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=' . $page . '">' . $page . '</a></li>';
+                            }
+                        }
+                        
+                        // Display link to jump to the last page
+                        if ($currentPage < $totalPages - floor($maxPagesToDisplay / 2)) {
+                            if ($currentPage < $totalPages - floor($maxPagesToDisplay / 2) - 1) {
+                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                            }
+                            echo '<li class="page-item"><a class="page-link" href="index.php?kategori=' . $kategori . '&page=' . $totalPages . '">' . $totalPages . '</a></li>';
+                        }
                         
                         // Display "Next" button if not on the last page
                         if ($currentPage < $totalPages) {
@@ -299,7 +299,10 @@
                         }
                         
                         echo '</ul>';
-                        echo '</div">';
+                        echo '</div>';
+                        
+                        
+
                         
                     } else {
                         echo "No products found.";
