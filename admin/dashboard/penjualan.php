@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
         <style>
         /* Custom CSS to limit the pixel size */
         .custom-img {
@@ -28,6 +29,9 @@
                                 DataTable Example
                             </div>
                             <div class="card-body">
+                            <button type="button" class="btn btn-success" onclick="activateAllProducts()">Activate All</button>
+                            <button type="button" class="btn btn-danger" onclick="deactivateAllProducts()">Deactivate All</button>
+                            <br><br>
                                 <table id="datatablesSimple">
                                     <thead>
                                         <tr>
@@ -57,7 +61,38 @@
                                     </tfoot>
                                     <tbody>
                                         <?php
-                                            require_once("conn.php");
+                                             require_once("conn.php");
+
+                                             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                                                // Handle the POST request to update "aktifasi"
+                                                if (isset($_POST['id_jual']) && isset($_POST['action'])) {
+                                                    $productId = $_POST['id_jual'];
+                                                    $action = $_POST['action'];
+                                                    $response = array();
+                                            
+                                                    // Update the aktifasi value for the specified product based on the action
+                                                    if ($action === 'activate') {
+                                                        $query = "UPDATE jual SET aktifasi = 1 WHERE id_jual = :id_jual";
+                                                    } elseif ($action === 'deactivate') {
+                                                        $query = "UPDATE jual SET aktifasi = 0 WHERE id_jual = :id_jual";
+                                                    }
+                                            
+                                                    $stmt = $conn->prepare($query);
+                                                    $stmt->bindParam(':id_jual', $productId, PDO::PARAM_INT);
+                                            
+                                                    if ($stmt->execute()) {
+                                                        $response['success'] = true;
+                                                        $response['aktifasi'] = $stmt->fetch(PDO::FETCH_COLUMN);
+                                                    } else {
+                                                        $response['success'] = false;
+                                                    }
+                                            
+                                                    // Send a JSON response
+                                                    header('Content-Type: application/json');
+                                                    echo json_encode($response);
+                                                    exit;
+                                                }
+                                            }
                                             
                                             $no = 1;
                                             $query = "SELECT j.*, u.nama_produk, u.kategori, t.gambarPath 
@@ -86,9 +121,12 @@
                                                     <a type="button" class="btn btn-update btn-sm btn-success" onclick="openUpdateModal(<?= $row['id_jual']; ?>);">
                                                         <i class="fa-solid fa-pencil" style="color: #ffffff;"></i>
                                                     </a>
-                                                    <a type="button" class="btn toggle-aktifasi btn-sm <?= $row['aktifasi'] == 1 ? 'btn-success' : 'btn-danger'; ?>" onclick="toggleAktifasi(<?= $row['id_jual']; ?>, this); refreshPage();">
-                                                        <i id="aktifasi-icon" class="fa-solid <?= $row['aktifasi'] == 1 ? 'fa-eye' : 'fa-eye-slash'; ?>" style="color: #ffffff;"></i>
-                                                    </a>
+                                                    <button type="button" class="btn btn-sm btn-primary" onclick="toggleAktifasi(<?= $row['id_jual']; ?>, 'activate'); refreshPage();">
+                                                        Activate
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-danger" onclick="toggleAktifasi(<?= $row['id_jual']; ?>, 'deactivate'); refreshPage();">
+                                                        Deactivate
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -128,7 +166,6 @@
                                             </div>
                                         </div>
                                     </div>
-
                                 </table>
                             </div>
                         </div>
@@ -144,35 +181,71 @@
         <script src="assets/demo/chart-bar-demo.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
         <script src="js/datatables-simple-demo.js"></script>
+
         <script>
-
-            function toggleAktifasi(productId, button) {
-                // Send an AJAX request to update the "aktifasi" value
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', 'penjualan.php', true);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.onload = function () {
-                    if (xhr.status === 200) {
-                        const response = JSON.parse(xhr.responseText);
-                        if (response.success) {
-                            // Update the button and UI based on the response
-                            button.classList.remove('btn-success', 'btn-danger');
-                            button.classList.add(response.aktifasi === 1 ? 'btn-success' : 'btn-danger');
-                            window.location.reload();
-                            // Reload the page
-                        } else {
-                            console.error('Failed to update aktifasi');
-                        }
+        function toggleAktifasi(productId, action) {
+            // Send an AJAX request to update the "aktifasi" value
+            $.ajax({
+                type: 'POST',
+                url: 'penjualan.php',
+                data: {
+                    id_jual: productId,
+                    action: action
+                },
+                success: function (response) {
+                    if (response.success) {
+                        // Reload the page or update the DataTable as needed
+                        refreshPage();
+                    } else {
+                        console.error('Failed to update aktifasi');
                     }
-                };
+                },
+                error: function () {
+                    console.error('AJAX request failed');
+                }
+            });
+        }
 
-                // Send the product ID as POST data
-                xhr.send('id_jual=' + productId);
-            }
-            function refreshPage() {
+        function refreshPage() {
+            // Set the time interval in milliseconds (e.g., 5000 milliseconds = 5 seconds)
+            const reloadInterval = 100;
+
+            // Use setTimeout to reload the page after the specified interval
+            setTimeout(function () {
                 window.location.reload();
-            }
-        </script>
+            }, reloadInterval);
+        }
+
+        function activateAllProducts() {
+            updateAllProductsAktifasi(1);
+        }
+
+        function deactivateAllProducts() {
+            updateAllProductsAktifasi(0);
+        }
+
+        function updateAllProductsAktifasi(aktifasiValue) {
+            // Send an AJAX request to update the "aktifasi" value for all products
+            $.ajax({
+                type: 'POST',
+                url: 'update-all-produk.php',
+                data: {
+                    aktifasi: aktifasiValue
+                },
+                success: function (response) {
+                    if (response.success) {
+                        // Reload the page or update the DataTable as needed
+                        window.location.reload();
+                    } else {
+                        console.error('Failed to update all products aktifasi');
+                    }
+                },
+                error: function () {
+                    console.error('AJAX request failed');
+                }
+            });
+        }
+    </script>
 
 
         <script>
@@ -218,7 +291,6 @@
                 // Send the request to fetch data
                 xhr.send();
             }
-
             function updateData() {
                 // Get form data
                 var id_jual = document.getElementById('id_jual').value;

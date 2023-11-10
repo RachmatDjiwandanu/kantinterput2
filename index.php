@@ -239,7 +239,7 @@
                             echo '<li><a href="#"><i class="fa fa-heart"></i></a></li>';
                             echo '<li><a href="#"><i class="fa fa-retweet"></i></a></li>';
                             echo '<li><a class="add-to-cart" onclick="popupwin()"
-                                data-id="' . $row['id_produk'] . '" 
+                                data-id="' . $row['id_jual'] . '" 
                                 data-name="' . $row['nama_produk'] . '" 
                                 data-price="' . $row['harga'] . '"
                                 data-image="' . $row['gambarPath'] . '">

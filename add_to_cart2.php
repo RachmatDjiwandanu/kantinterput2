@@ -1,12 +1,12 @@
 <?php
 session_start();
 
-if (isset($_POST['id_product']) && isset($_POST['product_name']) && isset($_POST['price']) && isset($_POST['image']) && isset($_POST['quantity'])) {
+// Check if the 'id_product', 'product_name', and 'price' are set in the POST request
+if (isset($_POST['id_product']) && isset($_POST['product_name']) && isset($_POST['price']) && isset($_POST['image'])) {
     $id_product = $_POST['id_product'];
     $product_name = $_POST['product_name'];
     $price = $_POST['price'];
     $image = $_POST['image'];
-    $quantity = (int)$_POST['quantity']; // Ensure quantity is an integer
 
     // Create or retrieve the cart array from the session
     if (!isset($_SESSION['cart'])) {
@@ -17,7 +17,7 @@ if (isset($_POST['id_product']) && isset($_POST['product_name']) && isset($_POST
     $product_exists = false;
     foreach ($_SESSION['cart'] as &$item) {
         if ($item['id_product'] == $id_product && $item['product_name'] == $product_name) {
-            $item['quantity'] += $quantity; // Increment quantity if product exists
+            $item['quantity'] += 1; // Increment quantity if product exists
             $product_exists = true;
             break;
         }
@@ -30,7 +30,7 @@ if (isset($_POST['id_product']) && isset($_POST['product_name']) && isset($_POST
             'product_name' => $product_name,
             'price' => $price,
             'image' => $image,
-            'quantity' => $quantity
+            'quantity' => 1
         );
     }
 

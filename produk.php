@@ -10,6 +10,8 @@ $nama_produk = "Product Not Found";
 $harga = "N/A";
 $topping = "None"; // Default topping
 $availabilityMessage = "";
+$quantity = 1;
+
 
 // Get the product ID from the URL
 if (isset($_GET['id_jual'])) {
@@ -42,6 +44,17 @@ if (isset($_GET['id_jual'])) {
     }
 }
 
+if (isset($_POST['topping'])) {
+    $selectedTopping = $_POST['topping'];
+
+    // Update the topping variable and calculate the new price
+    $topping = $selectedTopping;
+    
+    // Add your logic to determine the price increase based on the topping
+    if ($topping == 'Sawi') {
+        $harga += 500; // Adjust the price accordingly
+    }
+}
 // Restore the previous error reporting level
 error_reporting($previousErrorReporting);
 ?>
@@ -83,17 +96,22 @@ error_reporting($previousErrorReporting);
                 </div>
                 <div class="col-lg-6 col-md-6">
                     <div class="product__details__text">
-                        <form action="lol.php" method="POST">
+                        <form action="/kantinterput2/add_to_cart.php" method="POST" id="productForm">
+                            <input type="hidden" name="topping" id="selectedToppingInput" value="<?php echo $topping; ?>">
+                            <input type="hidden" id="displayedPrice" name="price" value="<?php echo $harga; ?>">
+                            <input type="hidden" name="id_product" value="<?php echo $id_jual; ?>">
+                            <input type="hidden" name="product_name" value="<?php echo $nama_produk . ' (' . $topping . ')'; ?>">
+                            <input type="hidden" name="image" value="<?php echo $gambarPath; ?>">
                             <h3><?php echo $nama_produk; ?></h3>
-                            <div class="product__details__price">Rp<?php echo $harga; ?></div>
+                            <div class="product__details__price"><span id="displayedPriceInput">Rp<?php echo $harga; ?></span></div>
                             <div class="product__details__quantity">
                                 <div class="quantity">
                                     <div class="pro-qty">
-                                        <input type="text" value="1">
+                                        <input type="text" name="quantity" value="<?php echo $quantity; ?>">
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" class="primary-btn">ADD TO CARD</button><br><br>
+                            <button type="button" class="primary-btn" onclick="addToCart()">ADD TO CART</button><br><br>
                             <?php if ($kategori == 'Mie'): ?>
                                 <span>Topping :</span>
                                 <select class="form-select w-50 my-1" aria-label="Topping"  id="toppingSelect" name="topping">
@@ -104,7 +122,7 @@ error_reporting($previousErrorReporting);
                             <ul>
                                 <li><b>Availability</b> <span><?php echo $availabilityMessage; ?></span></li>
                                 <?php if ($kategori == 'Mie'): ?>
-                                <li><b>Topping</b> <span id="selectedTopping">None</span></li>
+                                <li><b>Topping</b> <span id="selectedTopping"></span></li>
                                 <?php endif; ?>
                             </ul>
                         </form>
@@ -197,28 +215,62 @@ error_reporting($previousErrorReporting);
     <script src="/js/mixitup.min.js"></script>
     <script src="/js/owl.carousel.min.js"></script>
     <script src="/js/main.js"></script>
-    <script>
-    // Function to capitalize the first letter of a string
-        function capitalizeFirstLetter(string) {
-            return string.charAt(0).toUpperCase() + string.slice(1);
-        }
 
-        // Get a reference to the select element and the "selectedTopping" span
+    <script>
+        const displayedPriceInput = document.getElementById('displayedPriceInput');
         const toppingSelect = document.getElementById('toppingSelect');
         const selectedToppingSpan = document.getElementById('selectedTopping');
 
         // Add an event listener to the select element
         toppingSelect.addEventListener('change', function () {
-            // Get the selected option's value and capitalize the first letter
             const selectedTopping = toppingSelect.value;
             const capitalizedTopping = capitalizeFirstLetter(selectedTopping);
 
             // Update the "selectedTopping" span with the capitalized value
-            selectedToppingSpan.textContent = capitalizedTopping;
+            selectedToppingSpan.textContent = (selectedTopping === 'none') ? '' : capitalizedTopping;
+
+            // Update the product_name based on the selected topping
+            let updatedProductName = "<?php echo $nama_produk; ?>";
+
+            if (selectedTopping !== 'none') {
+                updatedProductName += ' (' + capitalizedTopping + ')';
+            }
+
+            document.getElementsByName('product_name')[0].value = updatedProductName;
+
+            document.getElementById('selectedToppingInput').value = selectedTopping;
+
+            // Update the displayed price based on the selected topping
+            const newPrice = (selectedTopping === 'none') ? <?php echo $harga; ?> : calculateNewPrice(selectedTopping);
+
+            // Update the value of the displayed price input field
+            document.getElementById('displayedPrice').value = newPrice.toFixed(0);
+            displayedPriceInput.textContent = 'Rp' + newPrice.toFixed(0);
         });
+
+        // Function to capitalize the first letter of a string
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        // Function to calculate the new price based on the selected topping
+        function calculateNewPrice(selectedTopping) {
+            let newPrice = <?php echo $harga; ?>; // Default to the base price
+
+            // Add your logic to determine the price increase based on the topping
+            if (selectedTopping === 'Sawi') {
+                newPrice += 500; // Adjust the price accordingly
+            }
+
+            return newPrice;
+        }
     </script>
 
 
+    <script>
+        function addToCart() {
+            document.getElementById('productForm').submit();
+        }
+    </script>
 </body>
-
 </html>
