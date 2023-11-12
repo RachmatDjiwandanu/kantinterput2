@@ -1,5 +1,7 @@
 
-<!-- <nav class="navbar navbar-expand-lg bg-body-success"> -->
+
+
+    <!-- <nav class="navbar navbar-expand-lg bg-body-success"> -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
   <div class="container">
     <a class="navbar-brand" href="index.php">Kantin Kita</a>
@@ -20,7 +22,7 @@
             <a class="nav-link active " aria-current="page" href="cart.php">Keranjang</a>
           </li>
           <li class="nav-item mx-2">
-            <a class="nav-link active " aria-current="page" href="#contact">Contact</a>
+            <a class="nav-link active " aria-current="page" href="contact.php">Contact</a>
           </li>
           <li class="nav-item">
             <a class="nav-link mx-2 " href="#">Link</a>
